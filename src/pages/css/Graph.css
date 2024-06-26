@@ -1,0 +1,39 @@
+.containergraph {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
+.tabs {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.content {
+  margin-top: 20px;
+  display: block;
+  align-items: center;
+  justify-content: center;
+}
+
+.graphImage {
+  height: 70vh;
+  max-height: 100vh;
+}
+@media screen and (max-width: 600px) {
+  .optionsButton {
+    width: 130px;
+  }
+}
+
+.line {
+  display: block;
+  box-sizing: border-box;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  height: 258px;
+  width: 516px;
+}

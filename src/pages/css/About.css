@@ -1,0 +1,65 @@
+.aboutContainer {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  margin: 0 auto;
+  max-width: 800px;
+  padding: 20px;
+  text-align: center;
+  color: #ffffff;
+  position: relative;
+}
+
+.header {
+  font-size: 28px;
+  font-weight: 300;
+  margin-bottom: 30px;
+}
+
+.aboutSection,
+.linksSection {
+  border: 1px solid #304530;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  padding: 25px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.titleBox {
+  background: linear-gradient(45deg, #00805ab2, #003f08);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px 10px 0 0;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.txtContainer {
+  padding: 20px;
+  text-align: left;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.txtContainer p {
+  color: #ffffff;
+}
+
+.txtContainer a {
+  color: #4caf50;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.txtContainer a:hover {
+  color: #366633;
+  text-decoration: underline;
+}
+
+@media screen and (max-width: 768px) {
+  .aboutContainer {
+    padding: 15px;
+  }
+  .titleBox,
+  .txtContainer {
+    padding: 15px;
+  }
+}

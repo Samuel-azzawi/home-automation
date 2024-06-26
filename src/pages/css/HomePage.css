@@ -1,0 +1,73 @@
+.main-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 200px;
+}
+
+.mainContainer {
+  display: block;
+  width: 700px;
+  border: 0.5px solid;
+  border-color: aliceblue;
+  border-radius: 20px;
+  height: 100%;
+}
+.optionsContainer {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+.optionsButton {
+  border: none;
+  display: inline-block;
+  padding: 0.7em 1.4em;
+  margin: 0 0.3em 0.3em 0;
+  border-radius: 0.15em;
+  box-sizing: border-box;
+  text-decoration: none;
+  font-family: "Roboto", sans-serif;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: #ffffff;
+  background-color: #048f9b;
+  box-shadow: inset 0 -0.6em 0 -0.35em rgba(0, 0, 0, 0.17);
+  text-align: center;
+}
+.optionsButton:active {
+  top: 0.1em;
+}
+@media all and (max-width: 30em) {
+  .optionsButton {
+    display: block;
+    margin: 0.4em auto;
+  }
+}
+.welcomeMessage {
+  color: white;
+}
+.activeElementContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 250px;
+  width: 100%;
+  margin: 0;
+}
+
+@media screen and (max-width: 600px) {
+  .main-content {
+    width: 100%;
+    margin-top: 140px;
+  }
+  .mainContainer {
+  width: 100%;
+  height: 500px;
+}
+.activeElementContainer {
+  height: auto;
+  width: 100%;
+  margin: 0;
+}
+}

@@ -1,0 +1,18 @@
+body {
+  background-color: rgb(56, 55, 55);
+  margin: 0;
+  padding: 0;
+  max-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  touch-action: manipulation;
+
+}
+
+.App {
+  padding: 0;
+  margin: 0;
+}

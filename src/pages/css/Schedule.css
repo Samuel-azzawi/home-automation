@@ -1,0 +1,126 @@
+.scheduleContainer {
+  display: flex;
+  justify-content: space-between;
+  color: white;
+  height: 200px;
+  width: 100%;
+}
+
+.inputContainer {
+  padding-left: 20px;
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+.scheduleLabel {
+  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+}
+.timeInput {
+  padding: 8px;
+  border: 2px solid #000000;
+  border-radius: 25px;
+  font-size: 16px;
+  background-color: rgb(201, 199, 199);
+}
+
+.actionSelect {
+  padding: 8px;
+  border: 2px solid #000000;
+  border-radius: 25px;
+  font-size: 16px;
+  background-color: rgb(201, 199, 199);
+}
+
+.setScheduleButton {
+  --b: 3px;   /* border thickness */
+  --s: .45em; /* size of the corner */
+  --color: #c9c9c9;
+  
+  padding: calc(.5em + var(--s)) calc(.9em + var(--s));
+  color: var(--color);
+  --_p: var(--s);
+  background:
+    conic-gradient(from 90deg at var(--b) var(--b),#0000 90deg,var(--color) 0)
+    var(--_p) var(--_p)/calc(100% - var(--b) - 2*var(--_p)) calc(100% - var(--b) - 2*var(--_p));
+  transition: .3s linear, color 0s, background-color 0s;
+  outline: var(--b) solid #0000;
+  outline-offset: .6em;
+  font-size: 16px;
+
+  border: 0;
+
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.setScheduleButton:hover,
+.setScheduleButton:focus-visible{
+  --_p: 0px;
+  outline-color: var(--color);
+  outline-offset: .05em;
+}
+
+.setScheduleButton:active {
+  background: var(--color);
+  color: #fff;
+}
+
+.messagesContainer {
+  width: 60%;
+  height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  padding: 10px;
+  position: relative;
+  right: 10px;
+  bottom: 8px;
+}
+
+.message {
+  font-size: 20px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.removeButton {
+  margin-right: 30px;
+  font-size: 25px;
+}
+
+.time{
+  position: absolute;
+  top:0px;
+  z-index: 10000;
+  right: 10px;
+  width: 100px;
+}
+
+@media screen and (max-width: 600px) {
+.scheduleContainer{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: self-start;
+  width: 100%;
+  height: 420px;
+}
+.inputContainer{
+  padding-top: 20px;
+  width: 30%;
+  gap: 10px;
+  padding-bottom: 20px;
+}
+.scheduleLabel{
+  width: 100%;
+}
+.messagesContainer{
+  width: 90%;
+  left: 10px;
+}
+}

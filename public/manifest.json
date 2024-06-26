@@ -1,0 +1,21 @@
+{
+  "short_name": "HA",
+  "name": "Home Automation",
+  "icons": [
+    {
+      "src": "./favicon.ico",
+      "type": "image/ico",
+      "sizes": "192x192"
+    },
+    {
+      "src": "./favicon.ico",
+      "type": "image/ico",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#FFFFFF",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#000000"
+}
