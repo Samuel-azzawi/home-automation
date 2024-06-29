@@ -50,7 +50,7 @@ const LightSwitch = () => {
             setLightSwitchState(data);
           }
         });
-      }, 5000);
+      }, 1500);
     }
 
     return () => {
@@ -81,7 +81,7 @@ const LightSwitch = () => {
     }
     sensitivityTimeoutRef.current = setTimeout(() => {
       sendDataToFeed(`sensitivity:${newSensitivity}`, "sensor");
-    }, 3000);
+    }, 1500);
   };
 
   const handleAutoManualToggle = () => {
@@ -117,7 +117,7 @@ const LightSwitch = () => {
               id="sensitivity"
               name="sensitivity"
               min="0"
-              max="500"
+              max="100"
               value={sensitivity}
               onChange={handleSensitivityChange}
             />
