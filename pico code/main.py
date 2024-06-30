@@ -64,7 +64,6 @@ rtc = RTC()
 # Function to synchronize time with NTP server
 def synchronize_time():
     ntptime.settime()  # Synchronize time with NTP server
-    print("Time synchronized:", utime.localtime())
 
 # Initialize RTC synchronization
 synchronize_time()
@@ -96,14 +95,12 @@ def on_message(topic, msg):
     if topic == mqtt_subscribe_handleschedule.encode():
         msg_string = msg.decode('utf-8')
         msg_dict = json.loads(msg_string)
-        print(msg_dict['method'])
         if int(msg_dict['method']) ==  1:  # Create schedule
             timelist.append(msg_dict)
             print(f"Schedule added: {msg_dict}")
         elif int(msg_dict['method']) ==  0:  # Delete schedule
             timelist = [entry for entry in timelist if entry["time"] != msg_dict["time"]]
             print(f"Schedule removed: {msg_dict}")
-            print(timelist)
 
     if topic == mqtt_subscribe_schedulekey.encode():
         msg_string = msg.decode('utf-8')
@@ -163,11 +160,9 @@ def check_schedules():
                     mqtt_client.publish(mqtt_subscribe_lightswitch, '1')
                     current_light_switch_state = 1
                     print("Light turned ON as per schedule")
-                    print(key)
                     delete_data(key[0])
                     del key[0]
                     del timelist[0]
-                    print(key)
                     
                 elif entry["state"] == 0:
                     auto_mode = False
@@ -177,11 +172,9 @@ def check_schedules():
                     mqtt_client.publish(mqtt_subscribe_lightswitch, '0')
                     current_light_switch_state = 0
                     print("Light turned OFF as per schedule")
-                    print(key)
                     delete_data(key[0])
                     del key[0]
                     del timelist[0]
-                    print(key)
                 schedule_action_performed = True
         else:
             schedule_action_performed = False
@@ -223,7 +216,6 @@ try:
             current_light_switch_state = 1
             
         elif sensitivity > light and auto_mode and red.value() == 1:
-            print(auto_mode)
             red.value(0)
             mqtt_client.publish(mqtt_publish_lightswitchstate, '0')
             mqtt_client.publish(mqtt_subscribe_lightswitch, '0')
