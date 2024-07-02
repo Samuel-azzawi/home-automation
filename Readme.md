@@ -10,7 +10,7 @@ This project demonstrates a proof of concept for home automation by connecting a
 **Estimated Time to Complete**:
 
 for the python code it takes about 1-2 hours max,
-for the website it depends on how advanced you make it, so in average it takes about 5-20 hours including connecting it to Firebase and mqtt.
+for the website it depends on how advanced you make it, so in average it takes about 5-20 hours including connecting it to Firebase and MQTT.
 so overall it takes less than 24 hours to complete, so you can finish it in 1 day if you dont sleep :)
 
 ---
