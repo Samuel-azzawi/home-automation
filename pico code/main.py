@@ -5,7 +5,7 @@ import urequests
 from umqtt.simple import MQTTClient
 from machine import Pin, ADC, RTC
 import json
-import ntptime  # Import ntptime module for NTP synchronization
+import ntptime
 
 # Function to load configuration
 def load_config(filename='config.txt'):
@@ -35,6 +35,7 @@ mqtt_subscribe_lightswitch = config.get('MQTT_SUBSCRIBE_LIGHTSWITCH')
 mqtt_subscribe_handleschedule = config.get('MQTT_SUBSCRIBE_HANDLESCHEDULE')
 mqtt_subscribe_automanual = config.get('MQTT_SUBSCRIBE_AUTOMANUAL')
 mqtt_subscribe_sensor = config.get('MQTT_SUBSCRIBE_SENSOR')
+mqtt_publish_curtains = config.get('MQTT_PUBLISH_CURTAINS')
 
 # Timezone offset in seconds (2 hours ahead for UTC+2)
 timezone_offset = 2 * 3600  # 2 hours * 3600 seconds/hour
@@ -64,6 +65,7 @@ rtc = RTC()
 # Function to synchronize time with NTP server
 def synchronize_time():
     ntptime.settime()  # Synchronize time with NTP server
+    print("Time synchronized:", utime.localtime())
 
 # Initialize RTC synchronization
 synchronize_time()
@@ -95,12 +97,14 @@ def on_message(topic, msg):
     if topic == mqtt_subscribe_handleschedule.encode():
         msg_string = msg.decode('utf-8')
         msg_dict = json.loads(msg_string)
-        if int(msg_dict['method']) ==  1:  # Create schedule
+        print(msg_dict['method'])
+        if int(msg_dict['method']) == 1:  # Create schedule
             timelist.append(msg_dict)
             print(f"Schedule added: {msg_dict}")
-        elif int(msg_dict['method']) ==  0:  # Delete schedule
+        elif int(msg_dict['method']) == 0:  # Delete schedule
             timelist = [entry for entry in timelist if entry["time"] != msg_dict["time"]]
             print(f"Schedule removed: {msg_dict}")
+            print(timelist)
 
     if topic == mqtt_subscribe_schedulekey.encode():
         msg_string = msg.decode('utf-8')
@@ -125,12 +129,22 @@ mqtt_client.subscribe(mqtt_subscribe_schedulekey)
 mqtt_client.subscribe(mqtt_subscribe_automanual)
 mqtt_client.subscribe(mqtt_subscribe_sensor)
 
+# Publish initial values
+mqtt_client.publish(mqtt_subscribe_sensor, 'sensitivity:50')
+mqtt_client.publish(mqtt_subscribe_automanual, '1')
+
 # LED setup
 red = Pin('GP10', Pin.OUT)
 
 # New light sensor setup
 photoPIN = 26
 photoRes = ADC(Pin(photoPIN))
+
+# Hall-effect sensor setup
+sensor_pin = 16
+sensor = Pin(sensor_pin, Pin.IN)
+
+last_sent_state = None
 
 # Function to read light sensor
 def read_light():
@@ -140,7 +154,7 @@ def read_light():
 
 # Helper function to check and execute schedules
 def check_schedules():
-    global schedule_action_performed, auto_mode, key
+    global schedule_action_performed, auto_mode, last_sent_state
     current_time = utime.localtime()  # Get current UTC time
     # Adjust time for timezone offset
     adjusted_time = utime.mktime(current_time) + timezone_offset
@@ -152,29 +166,21 @@ def check_schedules():
     for entry in timelist:
         if entry["time"] == formatted_time:
             if not schedule_action_performed:
+                auto_mode = False  # Disable auto mode due to schedule action
                 if entry["state"] == 1:
-                    auto_mode = False
                     red.value(1)
-                    mqtt_client.publish(mqtt_subscribe_automanual, '0')
                     mqtt_client.publish(mqtt_publish_lightswitchstate, '1')
                     mqtt_client.publish(mqtt_subscribe_lightswitch, '1')
                     current_light_switch_state = 1
                     print("Light turned ON as per schedule")
-                    delete_data(key[0])
-                    del key[0]
-                    del timelist[0]
-                    
                 elif entry["state"] == 0:
-                    auto_mode = False
                     red.value(0)
-                    mqtt_client.publish(mqtt_subscribe_automanual, '0')
                     mqtt_client.publish(mqtt_publish_lightswitchstate, '0')
                     mqtt_client.publish(mqtt_subscribe_lightswitch, '0')
                     current_light_switch_state = 0
                     print("Light turned OFF as per schedule")
-                    delete_data(key[0])
-                    del key[0]
-                    del timelist[0]
+                    
+                del timelist[0]
                 schedule_action_performed = True
         else:
             schedule_action_performed = False
@@ -194,49 +200,62 @@ def publish_sensor_data():
         mqtt_client.publish(mqtt_publish_data, str(median_value))
         sensor_readings = []  # Clear readings after publishing
 
-def delete_data(data_id):
-    url = f"https://io.adafruit.com/api/v2/{mqtt_username}/feeds/schedule/data/{data_id}"
-    headers = {
-        'X-AIO-Key': mqtt_password,
-        'Content-Type': 'application/json'
-    }
-    response = urequests.delete(url, headers=headers)
-    if response.status_code == 200:
-        print(f"Data with ID {data_id} deleted'.")
-    else:
-        print(f"Failed to delete data: {response.status_code} {response.text}")
-    response.close()
-
 try:
     while True:
-        if sensitivity <= light and auto_mode and red.value() == 0:
-            red.value(1)
-            mqtt_client.publish(mqtt_publish_lightswitchstate, '1')
-            mqtt_client.publish(mqtt_subscribe_lightswitch, '1')
-            current_light_switch_state = 1
-            
-        elif sensitivity > light and auto_mode and red.value() == 1:
-            red.value(0)
-            mqtt_client.publish(mqtt_publish_lightswitchstate, '0')
-            mqtt_client.publish(mqtt_subscribe_lightswitch, '0')
-            current_light_switch_state = 0
-
-        mqtt_client.check_msg()  # Check for new messages and call on_message
+        # Check Hall-effect sensor
+        sensor_value = sensor.value()
+        
+        if sensor_value == 0 and last_sent_state != 'closed':  # Magnet detected (curtains closed)
+            auto_mode = False
+            mqtt_client.publish(mqtt_subscribe_automanual, '0')
+            mqtt_client.publish(mqtt_publish_curtains, 'closed')
+            print("Curtains closed")
+            last_sent_state = 'closed'
+        
+        elif sensor_value == 1 and last_sent_state != 'open':  # Magnet removed (curtains open)
+            auto_mode = True
+            mqtt_client.publish(mqtt_subscribe_automanual, '1')
+            mqtt_client.publish(mqtt_publish_curtains, 'open')
+            print("Curtains open")
+            last_sent_state = 'open'
 
         # Read light sensor
         light = read_light()
-        sensor_readings.append(light)  # Collect sensor readings
+        print(f"Current light level: {light}%")
+        
+        # Perform auto-mode logic if enabled
+        if auto_mode:
+            if light < sensitivity:
+                red.value(1)
+                if current_light_switch_state != 1:
+                    mqtt_client.publish(mqtt_publish_lightswitchstate, '1')
+                    current_light_switch_state = 1
+                    mqtt_client.publish(mqtt_subscribe_lightswitch, '1')
+                    print("Light turned ON based on sensitivity")
+            else:
+                red.value(0)
+                if current_light_switch_state != 0:
+                    mqtt_client.publish(mqtt_publish_lightswitchstate, '0')
+                    current_light_switch_state = 0
+                    mqtt_client.publish(mqtt_subscribe_lightswitch, '0')
+                    print("Light turned OFF based on sensitivity")
 
-        if len(sensor_readings) >= 300:  # Publish median every 300 seconds
-            publish_sensor_data()
+        # Collect sensor readings for median calculation
+        sensor_readings.append(light)
 
-        # Check and execute schedules every second
+        # Check and execute schedules
         check_schedules()
 
-        utime.sleep(1)  # Update every second
+        # Publish sensor data every 30 seconds
+        current_time = time.time()
+        if current_time - last_publish_time >= 30:
+            publish_sensor_data()
+            last_publish_time = current_time
 
-except KeyboardInterrupt:
-    red.value(0)  # Ensure the LED is turned off
-    print("Application stopped.")
+        mqtt_client.check_msg()  # Check for incoming MQTT messages
+        utime.sleep(1)
+except Exception as e:
+    print(f"An error occurred: {e}")
 finally:
     mqtt_client.disconnect()
+    wlan.disconnect()
