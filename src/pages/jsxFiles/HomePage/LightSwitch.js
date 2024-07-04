@@ -2,63 +2,59 @@ import { useState, useEffect, useRef } from "react";
 import MqttFunctions from "../../../MQTT/MqttFunctions";
 import "../../css/LightSwitch.css";
 import { DNA } from "react-loader-spinner";
+import OpenCurtainIcon from "../../../icons/open.svg";
+import ClosedCurtainIcon from "../../../icons/closed.svg";
 
 const LightSwitch = () => {
   const { sendDataToFeed, fetchLatestFeedData } = MqttFunctions();
   const [lightSwitchState, setLightSwitchState] = useState(null);
   const [sensitivity, setSensitivity] = useState(null);
+  const [localSensitivity, setLocalSensitivity] = useState(null);
   const [autoMode, setAutoMode] = useState(null);
   const [showAutoModeMessage, setShowAutoModeMessage] = useState(false);
+  const [curtainsState, setCurtainsState] = useState(0);
   const sensitivityTimeoutRef = useRef(null);
 
   useEffect(() => {
-    fetchLatestFeedData("lightswitchstate").then((data) => {
-      console.log(data);
-      if (data !== null) {
-        setLightSwitchState(data);
-      }
-    });
-
-    fetchLatestFeedData("sensor").then((data) => {
-      console.log(data);
-      if (data !== null) {
-        const sensValueArray = data.split(":");
-        if (sensValueArray.length === 2) {
-          const sensValue = parseInt(sensValueArray[1], 10);
-          if (!isNaN(sensValue)) {
-            setSensitivity(sensValue);
+    const interval = setInterval(() => {
+      fetchLatestFeedData("sensor").then((data) => {
+        if (data !== null) {
+          const sensValueArray = data.split(":");
+          if (sensValueArray.length === 2) {
+            const sensValue = parseInt(sensValueArray[1], 10);
+            if (!isNaN(sensValue)) {
+              setSensitivity(sensValue);
+              setLocalSensitivity((prevLocal) =>
+                prevLocal === null ? sensValue : prevLocal
+              );
+            }
           }
         }
-      }
-    });
+      });
 
-    fetchLatestFeedData("automanual").then((data) => {
-      console.log(data);
-      if (data !== null) {
-        setAutoMode(data);
-      }
-    });
-  }, [fetchLatestFeedData]);
+      fetchLatestFeedData("automanual").then((data) => {
+        if (data !== null) {
+          setAutoMode(data);
+        }
+      });
 
-  useEffect(() => {
-    let interval;
-    if (autoMode === "1") {
-      interval = setInterval(() => {
-        fetchLatestFeedData("lightswitchstate").then((data) => {
-          console.log(data);
-          if (data !== null) {
-            setLightSwitchState(data);
-          }
-        });
-      }, 1500);
-    }
+      fetchLatestFeedData("curtains").then((data) => {
+        if (data !== null) {
+          setCurtainsState(data);
+        }
+      });
+
+      fetchLatestFeedData("lightswitchstate").then((data) => {
+        if (data !== null) {
+          setLightSwitchState(data);
+        }
+      });
+    }, 1000);
 
     return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
+      clearInterval(interval);
     };
-  }, [autoMode, fetchLatestFeedData]);
+  }, [fetchLatestFeedData]);
 
   const handleLightSwitchChange = () => {
     if (autoMode === "1") {
@@ -75,12 +71,13 @@ const LightSwitch = () => {
 
   const handleSensitivityChange = (e) => {
     const newSensitivity = e.target.value;
-    setSensitivity(newSensitivity);
+    setLocalSensitivity(newSensitivity);
     if (sensitivityTimeoutRef.current) {
       clearTimeout(sensitivityTimeoutRef.current);
     }
     sensitivityTimeoutRef.current = setTimeout(() => {
       sendDataToFeed(`sensitivity:${newSensitivity}`, "sensor");
+      setSensitivity(newSensitivity);
     }, 1500);
   };
 
@@ -93,8 +90,9 @@ const LightSwitch = () => {
   return (
     <div className="container">
       {lightSwitchState !== null &&
-      sensitivity !== null &&
-      autoMode !== null ? (
+      localSensitivity !== null &&
+      autoMode !== null &&
+      curtainsState !== null ? (
         <>
           <div className="toggleLightCon">
             <input
@@ -118,13 +116,28 @@ const LightSwitch = () => {
               name="sensitivity"
               min="0"
               max="100"
-              value={sensitivity}
+              value={localSensitivity}
               onChange={handleSensitivityChange}
             />
-            <span>{sensitivity}</span>
+            <span>{localSensitivity}</span>
+          </div>
+          <div className="curtainsState">
+            {curtainsState === "closed" ? (
+              <img
+                src={ClosedCurtainIcon}
+                alt="Curtains are closed"
+                className="curtainIcon"
+              />
+            ) : (
+              <img
+                src={OpenCurtainIcon}
+                alt="Curtains are open"
+                className="curtainIcon"
+              />
+            )}
           </div>
           <div className="checkboxCon">
-            <p>auto mode</p>
+            <p>Auto mode</p>
             <input
               type="checkbox"
               className="checkbox-style"
